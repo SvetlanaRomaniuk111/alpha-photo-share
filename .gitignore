@@ -1,0 +1,11 @@
+__pycache__
+.env
+.vscode/
+.idea/
+.coverage
+.pytest_cache
+.venv
+.vscode
+postgres-data
+.git
+logs
