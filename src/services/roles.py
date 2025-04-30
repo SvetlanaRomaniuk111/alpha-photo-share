@@ -59,6 +59,7 @@ class RoleAccessService:
             await role_access(request, user)
             ```
         """
+        print("__________________________________________________buth_roles___________________________________________________")
         if user.role not in self.allowed_roles:
             log.debug(f"User {user.role} is not allowed")
             raise HTTPException(
