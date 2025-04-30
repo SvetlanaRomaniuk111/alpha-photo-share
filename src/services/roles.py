@@ -34,7 +34,7 @@ class RoleAccessService:
         self.allowed_roles = allowed_roles
 
     async def __call__(
-        self, request: Request, user: User = Depends(auth_service.authenticate_user)
+            self, request: Request, user: User = Depends(auth_service.authenticate_user)
     ):
         """
         Checks whether the authenticated user has an allowed role.
@@ -50,6 +50,9 @@ class RoleAccessService:
         Raises:
             HTTPException: If the user's role is not in the allowed roles list, an HTTP 403 error is raised.
 
+        Returns:
+            User: The authenticated and authorized user.
+
         Example:
             ```python
             role_access = RoleAccess(allowed_roles=[Role.admin, Role.manager])
@@ -61,3 +64,4 @@ class RoleAccessService:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="FORBIDDEN"
             )
+        return user
