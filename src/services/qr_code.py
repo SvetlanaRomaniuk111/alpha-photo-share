@@ -1,6 +1,5 @@
 import qrcode
 import qrcode.image.svg
-from io import BytesIO
 
 svgFactory = qrcode.image.svg.SvgPathFillImage
 
