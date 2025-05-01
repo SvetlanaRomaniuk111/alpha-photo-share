@@ -1,5 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from src.models.transformed_image import TransformedImage
+
+
+async def get_transformed_images(user_id: int, db: AsyncSession):
+    stmt = select(TransformedImage).filter(TransformedImage.user_id == user_id)
+    result = await db.execute(stmt)
+    
+    return result.scalars().all()
 
 async def save_transformed_image(user_id: int, original_url: str, transformed_url: str, qr_code_url: str, db: AsyncSession):
     new_entry = TransformedImage(
