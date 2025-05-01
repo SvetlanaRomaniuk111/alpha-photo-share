@@ -11,9 +11,4 @@ class QrCodeService:
         qrcode_img = qrcode.make(data)
         return qrcode_img
 
-if __name__ == "__main__":
-    # Передаем client_token из конфигурации
-    qrcode_service = QrCodeService()
-    qrcode_img = qrcode_service.GenerateQrCode("https://example.com")
-    print(type(qrcode_img))  # qrcode.image.pil.PilImage
-    qrcode_img.save("qrcode.png")
+qrcode_service = QrCodeService()
