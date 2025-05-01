@@ -8,6 +8,7 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship
 from src.db.base import Base
 
 from typing import TYPE_CHECKING
+from src.models.transformed_image import TransformedImage
 
 if TYPE_CHECKING:
     from src.models.posts import Post 
@@ -32,6 +33,8 @@ class User(Base):
     refresh_token: Mapped[str] = mapped_column(String(255), nullable=True)
     age: Mapped[int] = mapped_column(Integer(), nullable=False)
     gender: Mapped[Enum] = mapped_column("gender", Enum(Gender), nullable=False)
+    transformed_images: Mapped[list["TransformedImage"]] = relationship("TransformedImage", back_populates="user")
+
     
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
