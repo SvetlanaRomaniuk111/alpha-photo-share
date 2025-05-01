@@ -29,3 +29,6 @@ class TokenSchema(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
 
+class ImageRequestSchema(BaseModel):
+    image_url: HttpUrl  # URL зображення
+    transformation: dict  

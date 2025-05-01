@@ -63,22 +63,26 @@ async def update_token(user: User, token: str | None, db: AsyncSession):
         token (str | None): The new refresh token value. If None, the token will be cleared.
         db (AsyncSession): The database session to commit changes.
     """
-    user.refresh_token = token
+    setattr(user, 'refresh_token', token)
     await db.commit()
 
 async def get_all_users_from_db(db: AsyncSession) -> List[User]:
     result = await db.execute(select(User))
-    users = result.scalars().all()
+    users = list(result.scalars().all())
     return users
 
 async def delete_user(email, db: AsyncSession) -> List[User]:
     stmt = delete(User).where(User.email == email)
     await db.execute(stmt)
     await db.commit()
+    # Return the remaining users in the database
+    return await get_all_users_from_db(db)
     
 
 async def update_user(email, update_data, db: AsyncSession) -> User:
     user = await get_user_by_email(email, db)
+    if not user:
+        raise ValueError(f"User with email {email} not found.")
     for key, value in update_data.items():
         if value is not None:
             setattr(user, key, value)
@@ -93,7 +97,7 @@ async def create_admin(db: AsyncSession) -> User:
 
     if admin_user:
         log.info(f"Admin user {config.admin_config.ADMIN_EMAIL} already exists.")
-        return admin_user
+        return admin_user  # Return the existing admin user
     admin_user = User(
         full_name=config.admin_config.ADMIN_FULLNAME,
         email=config.admin_config.ADMIN_EMAIL,
@@ -107,3 +111,4 @@ async def create_admin(db: AsyncSession) -> User:
     db.add(admin_user)
     await db.commit()
     await db.refresh(admin_user)
+    return admin_user  # Ensure the newly created admin user is returned
