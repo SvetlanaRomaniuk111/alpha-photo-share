@@ -147,7 +147,6 @@ class Auth:
         Raises:
             HTTPException: If the token is invalid or expired.
         """
-        print("__________________________________________________auth_roles___________________________________________________")
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
