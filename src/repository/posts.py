@@ -1,8 +1,8 @@
-from sqlalchemy import select
+from sqlalchemy import UUID, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models import Post
-from src.schemas.post import PostSchema, PostUpdateSchema
+from src.models import Post, User
+from src.schemas.post import PostCreationSchema, PostUpdateSchema
 
 
 # get all posts with pagination
@@ -14,25 +14,25 @@ async def get_posts(limit: int, offset: int, db: AsyncSession):
 
 
 # get one post by id
-async def get_post(post_id: int, db: AsyncSession):
+async def get_post(post_id: UUID, db: AsyncSession):
 
     stmt = select(Post).where(Post.id == post_id)
     post = await db.execute(stmt)
     return post.scalar_one_or_none()
 
 #create post
-async def create_posts(body: PostSchema, db: AsyncSession):
+async def create_post(body: PostCreationSchema, user: User, db: AsyncSession):
 
-    post = Post(**body.model_dump(exclude_unset=True))
+    post = Post(**{**body.model_dump(), 'user_id': user.id})
     db.add(post)
     await db.commit()
     await db.refresh(post)
     return post
 
 # update post
-async def update_posts(post_id: int, body: PostUpdateSchema, db: AsyncSession):
+async def update_post(body: PostUpdateSchema, post_id: UUID , user : User, db: AsyncSession):
 
-    stmt = select(Post).filter_by(id=post_id)
+    stmt = select(Post).where(Post.id == post_id, Post.user_id == user.id)
     result = await db.execute(stmt)
     post = result.scalar_one_or_none()
     if post:
@@ -44,9 +44,9 @@ async def update_posts(post_id: int, body: PostUpdateSchema, db: AsyncSession):
     return post
 
 # delete post
-async def delete_post(post_id: int, db: AsyncSession):
+async def delete_post(post_id: UUID, user: User, db: AsyncSession):
 
-    stmt = select(Post).filter_by(id=post_id)
+    stmt = select(Post).where(Post.id == post_id, Post.user_id == user.id)
     post = await db.execute(stmt)
     post = post.scalar_one_or_none()
     if post:
