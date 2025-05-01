@@ -499,3 +499,7 @@ typing-inspection==0.4.0 ; python_version >= "3.12" and python_version < "4.0" \
 uvicorn==0.34.2 ; python_version >= "3.12" and python_version < "4.0" \
     --hash=sha256:0e929828f6186353a80b58ea719861d2629d766293b6d19baf086ba31d4f3328 \
     --hash=sha256:deb49af569084536d269fe0a6d67e3754f104cf03aba7c11c40f01aadf33c403
+pillow==11.2.1 ; python_version >= "3.12" and python_version < "4.0" \
+    --hash=sha256:74ee3d7ecb3f3c05459ba95eed5efa28d6092d751ce9bf20e3e253a4e497e691
+qrcode==8.1 ; python_version >= "3.12" and python_version < "4.0" \
+    --hash=sha256:9beba317d793ab8b3838c52af72e603b8ad2599c4e9bbd5c3da37c7dcc13c5cf
