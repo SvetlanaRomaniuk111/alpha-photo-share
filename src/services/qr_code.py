@@ -33,9 +33,8 @@ class QrCodeService:
         :param data: Данные для кодирования в QR-код.
         :return: Строка с SVG-кодом QR-кода.
         """
-        factory = qrcode.image.svg.SvgPathFillImage
         qr = qrcode.QRCode(
-            image_factory=factory,
+            image_factory=svgFactory,
             error_correction=qrcode.constants.ERROR_CORRECT_H,
             box_size=10,
             border=4,
