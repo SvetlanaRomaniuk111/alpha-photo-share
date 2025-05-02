@@ -36,7 +36,7 @@ class ImageProcessor:
             str: URL зміненого зображення.
         """
         url, _ = cloudinary_url(
-            image_url, width=width, height=height, crop="scale"
+            image_url, width=width, height=height, crop="fill", fetch_format="auto", quality="auto"
         )
         return url
 
@@ -52,7 +52,7 @@ class ImageProcessor:
         Returns:
             str: URL зображення з накладеним ефектом.
         """
-        url, _ = cloudinary_url(image_url, effect=effect)
+        url, _ = cloudinary_url(image_url, transformation=[{"effect": effect}])
         return url
 
     @staticmethod
@@ -67,6 +67,6 @@ class ImageProcessor:
             str: URL оптимізованого зображення.
         """
         url, _ = cloudinary_url(
-            image_url, quality="auto", fetch_format="auto"
+            image_url, quality="auto", fetch_format="auto", version="new_version"
         )
         return url
