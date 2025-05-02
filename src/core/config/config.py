@@ -33,8 +33,15 @@ class RedisConfig(Settings):
     REDIS_PASSWORD: Optional[str] = None
     REDIS_DB: int = 0
 
+class CloudinaryConfig(Settings):
+    CLOUDINARY_NAME: str = "your_cloud_name"
+    CLOUDINARY_API_KEY: int = 1234567890
+    CLOUDINARY_API_SECRET: str = "your_api_secret"
+
+
 admin_config = AdminConfig()
 db_config = DBConfig()
 jwt_config = JWTConfig()
 redis_config = RedisConfig()
+cloudinary_config = CloudinaryConfig()
 print(f"DBConfig: {db_config.DATABASE_URL}")
