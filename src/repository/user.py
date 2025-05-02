@@ -27,7 +27,7 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
     """
     stmt = select(User).filter(User.email == email)
     user = await db.execute(stmt)
-    user = user.scalar_one_or_none()
+    user = user.unique().scalar_one_or_none()
     return user
 
 

@@ -9,8 +9,8 @@ from src.db.base import Base
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.models.posts import Post
-    from src.models.image import TransformedImage
+    from .posts import Post
+    from .transformed_images import TransformedImage
 
 
 class Role(str, enum.Enum):
@@ -37,7 +37,7 @@ class User(Base):
     gender: Mapped[Enum] = mapped_column("gender", Enum(Gender), nullable=False)
 
     transformed_images: Mapped[list["TransformedImage"]] = relationship(
-        "TransformedImage", back_populates="user", lazy="joined"
+        "TransformedImage", back_populates="user", lazy="select"
     )
 
     created_at: Mapped[datetime] = mapped_column(

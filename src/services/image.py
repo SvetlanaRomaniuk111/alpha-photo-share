@@ -1,4 +1,4 @@
-import cloudinary.uploader
+from cloudinary import uploader
 import cloudinary.utils
 
 class ImageProcessor:
