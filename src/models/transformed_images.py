@@ -7,7 +7,7 @@ from src.db.base import Base
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.models.users import User
+    from .users import User
 
 
 class TransformedImage(Base):
@@ -42,4 +42,4 @@ class TransformedImage(Base):
 
     user: Mapped["User"] = relationship(
         "User", back_populates="transformed_images", lazy="joined"
-    )  # Зв’язок із користувачем
+    )
