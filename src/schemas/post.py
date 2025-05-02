@@ -9,20 +9,9 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 # Pydantic schemas
-class PostCreationSchema(BaseModel):
-    title: str = Field(String, nullable=False, min_length=3, max_length=30, )
-    description: str = Field(String, nullable=False,min_length=3, max_length=250)
-    image_url: HttpUrl  = Field(String, nullable=False, min_length=3, max_length=100)
-
-    model_config = {
-        "from_attributes": True
-    }
-
-
 class PostUpdateSchema(BaseModel):
     title: Optional[str] = Field(String, nullable=False,min_length=3, max_length=30)
     description: Optional[str] = Field(String, nullable=False,min_length=3, max_length=250)
-    image_url: Optional[HttpUrl] = Field(String, nullable=False,min_length=3, max_length=100)     
     
     model_config = {
         "from_attributes": True
