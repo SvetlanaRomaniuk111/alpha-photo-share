@@ -1,3 +1,4 @@
+from httpx import post
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import String, ForeignKey, DateTime, func, text
 from sqlalchemy.orm import mapped_column, Mapped, relationship
@@ -8,31 +9,25 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .users import User
+    from .posts import Post
 
 
 class TransformedImage(Base):
-    """
-    Модель для збереження трансформованих зображень.
-
-    Використовується для збереження інформації про змінені зображення,
-    включаючи їх оригінальний і перетворений URL, а також дату створення.
-    """
-
     __tablename__ = "transformed_images"
 
     id: Mapped[UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
     )  # Унікальний ідентифікатор трансформованого зображення
 
+    post_id: Mapped[UUID] = mapped_column(
+        ForeignKey("posts.id", ondelete="CASCADE")
+    )  # ID поста, до якого належить трансформоване зображення
+
     user_id: Mapped[UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE")
     )  # ID користувача, який виконав трансформацію
 
-    original_url: Mapped[str] = mapped_column(
-        String, nullable=False
-    )  # Оригінальний URL зображення
-
-    transformed_url: Mapped[str] = mapped_column(
+    url: Mapped[str] = mapped_column(
         String, nullable=False
     )  # URL трансформованого зображення
 
@@ -43,3 +38,7 @@ class TransformedImage(Base):
     user: Mapped["User"] = relationship(
         "User", back_populates="transformed_images", lazy="joined"
     )
+
+    post: Mapped["Post"] = relationship(
+        "Post", back_populates="transformed_images", lazy="joined"
+    )  # Відношення до моделі Post

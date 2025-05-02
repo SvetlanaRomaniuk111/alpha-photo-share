@@ -1,72 +1,87 @@
 from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
+from fastapi import HTTPException, UploadFile
+from src.core.config.config import CloudinaryConfig
+import cloudinary
+from cloudinary.api import delete_resources
 
-class ImageProcessor:
-    """Клас для обробки зображень через Cloudinary.
 
-    Цей клас містить методи для виконання основних операцій зображеннями, таких як завантаження, 
-    зміна розміру, накладання фільтрів, зміна формату та оптимізація.
-    """
+class CloudinaryService:
+    def __init__(
+        self,
+    ):
+        self.settings = cloudinary.config(
+            cloud_name=CloudinaryConfig.CLOUDINARY_NAME,
+            api_key=CloudinaryConfig.CLOUDINARY_API_KEY,
+            api_secret=CloudinaryConfig.CLOUDINARY_API_SECRET,
+            secure=True,
+        )
 
-    @staticmethod
-    def upload_image(file_path: str) -> str:
-        """
-        Завантажує зображення на Cloudinary.
+    public_folder = f"user_posts/"
 
-        Args:
-            file_path (str): Шлях до файлу зображення, яке потрібно завантажити.
+    async def upload(self, file: UploadFile, user_email: str):
+        # Завантажуємо файл до Cloudinary
+        try:
+            upload_result = upload(
+                file.file, folder=f"{self.public_folder}{user_email}", overwrite=True
+            )
 
-        Returns:
-            str: URL завантаженого зображення.
-        """
-        result = upload(file_path)
-        return result["url"]
+            # Отримання `public_id`
+            public_id = upload_result.get("public_id")
+            version = upload_result.get("version")
 
-    @staticmethod
-    def resize_image(image_url: str, width: int, height: int) -> str:
-        """
-        Змінює розмір зображення за заданими параметрами.
+            if not public_id:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Failed to retrieve public_id from Cloudinary",
+                )
 
-        Args:
-            image_url (str): URL оригінального зображення.
-            width (int): Бажана ширина зображення.
-            height (int): Бажана висота зображення.
+            # Формування коректного URL
+            result_url, _ = cloudinary_url(public_id, version=version)
 
-        Returns:
-            str: URL зміненого зображення.
-        """
+            return result_url
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to upload to Cloudinary: {e}"
+            )
+
+    async def delete(self, public_id: str):
+        try:
+            # Удаляем конкретное изображение
+            deleted_file_result = delete_resources(public_id)
+
+            return {"deleted_file": deleted_file_result}
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to delete image from Cloudinary: {e}"
+            )
+
+
+    async def resize(self, image_url: str, width: int, height: int) -> str:
         url, _ = cloudinary_url(
-            image_url, width=width, height=height, crop="fill", fetch_format="auto", quality="auto"
+            image_url,
+            width=width,
+            height=height,
+            crop="fill",
+            fetch_format="auto",
+            quality="auto",
         )
         return url
 
-    @staticmethod
-    def apply_filter(image_url: str, effect: str) -> str:
-        """
-        Накладає фільтр або ефект на зображення.
-
-        Args:
-            image_url (str): URL оригінального зображення.
-            effect (str): Назва ефекту (наприклад, "grayscale", "sepia").
-
-        Returns:
-            str: URL зображення з накладеним ефектом.
-        """
+    async def apply_filter(self, image_url: str, effect: str) -> str:
+            # Перевірка наявності ефекту
+        if effect not in ["grayscale", "sepia", "brightness", "contrast"]:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid effect. Available effects: grayscale, sepia, brightness, contrast.",
+            )
         url, _ = cloudinary_url(image_url, transformation=[{"effect": effect}])
         return url
-
-    @staticmethod
-    def optimize_image(image_url: str) -> str:
-        """
-        Оптимізує зображення, зменшуючи його вагу без втрати якості.
-
-        Args:
-            image_url (str): URL оригінального зображення.
-
-        Returns:
-            str: URL оптимізованого зображення.
-        """
+    
+    async def reduce_size(self, image_url: str) -> str:
         url, _ = cloudinary_url(
             image_url, quality="auto", fetch_format="auto", version="new_version"
         )
         return url
+
+cloudinary_service = CloudinaryService()
