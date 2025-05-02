@@ -1,7 +1,5 @@
 import qrcode
-import qrcode.image.svg
-
-svgFactory = qrcode.image.svg.SvgPathFillImage
+from qrcode.image.svg import SvgPathFillImage
 
 class QrCodeService:
     def __init__(self):
@@ -10,7 +8,7 @@ class QrCodeService:
         """
         pass
 
-    def GenerateQrCode(self, data: str) -> str:
+    def GenerateQrCode(self, data:str) -> str:
         """
         Генерирует QR-код на основе переданных данных.
 
@@ -26,7 +24,7 @@ class QrCodeService:
         qr.make(fit=True)
         return qr.make_image(fill_color="black", back_color="white")
     
-    def GenerateQrCodeSvg(self, data: str) -> str:
+    def GenerateQrCodeSvg(self, data:str, size:int=200) -> str:
         """
         Генерирует QR-код в формате SVG на основе переданных данных (фиксированные размеры и стандартные атрибуты).
 
@@ -34,7 +32,7 @@ class QrCodeService:
         :return: Строка с SVG-кодом QR-кода.
         """
         qr = qrcode.QRCode(
-            image_factory=svgFactory,
+            image_factory=SvgPathFillImage,
             error_correction=qrcode.constants.ERROR_CORRECT_H,
             box_size=10,
             border=4,
@@ -42,7 +40,7 @@ class QrCodeService:
         qr.add_data(data)
         qr.make(fit=True)
         img = qr.make_image(fill_color="black", back_color="white")
-        svg_string = img.to_string().decode('utf-8').replace('width="37mm"', 'width="200px"').replace('height="37mm"', 'height="200px"').replace('fill_color="black"', 'fill="#000000"').replace('back_color="white"', '')
+        svg_string = img.to_string().decode('utf-8').replace('width="37mm"', f'width="{size}px"').replace('height="37mm"', f'height="{size}px"')
         return svg_string
 
 qrcode_service = QrCodeService()
