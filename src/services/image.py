@@ -1,5 +1,5 @@
-from cloudinary import uploader
-import cloudinary.utils
+from cloudinary.uploader import upload
+from cloudinary.utils import cloudinary_url
 
 class ImageProcessor:
     """Клас для обробки зображень через Cloudinary.
@@ -19,7 +19,7 @@ class ImageProcessor:
         Returns:
             str: URL завантаженого зображення.
         """
-        result = cloudinary.uploader.upload(file_path)
+        result = upload(file_path)
         return result["url"]
 
     @staticmethod
@@ -35,7 +35,7 @@ class ImageProcessor:
         Returns:
             str: URL зміненого зображення.
         """
-        url, _ = cloudinary.utils.cloudinary_url(
+        url, _ = cloudinary_url(
             image_url, width=width, height=height, crop="scale"
         )
         return url
@@ -52,7 +52,7 @@ class ImageProcessor:
         Returns:
             str: URL зображення з накладеним ефектом.
         """
-        url, _ = cloudinary.utils.cloudinary_url(image_url, effect=effect)
+        url, _ = cloudinary_url(image_url, effect=effect)
         return url
 
     @staticmethod
@@ -66,7 +66,7 @@ class ImageProcessor:
         Returns:
             str: URL оптимізованого зображення.
         """
-        url, _ = cloudinary.utils.cloudinary_url(
+        url, _ = cloudinary_url(
             image_url, quality="auto", fetch_format="auto"
         )
         return url
