@@ -43,9 +43,13 @@ async def get_post(post_id: UUID, db: AsyncSession = Depends(get_db)):
 @router.post('/', response_model=PostResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(RateLimiter(times=10, seconds=20))])
 async def create_post(title: str = Form(...), description: str = Form(...), image: UploadFile = File(...), db: AsyncSession = Depends(get_db),
                          user: User = Depends(all_roles_access)):
-
+    if not image.content_type.startswith('image/'):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File is not an image")
     image_url = await cloudinary_service.upload(image, user.email)
-    post = await repositories_posts.create_post(title, description, image_url, user.id, db)
+    try:
+        post = await repositories_posts.create_post(title, description, image_url, user.id, db)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to create post: {e}")
     return post
 
 

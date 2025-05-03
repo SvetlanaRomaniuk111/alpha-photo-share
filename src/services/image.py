@@ -4,7 +4,7 @@ from fastapi import HTTPException, UploadFile
 from src.core import config
 import cloudinary
 from cloudinary.api import delete_resources
-
+from src.core import log
 
 class CloudinaryService:
     def __init__(
@@ -18,6 +18,16 @@ class CloudinaryService:
         )
 
     public_folder = f"user_posts/"
+
+    @staticmethod
+    def extract_public_id(image_url: str) -> str:
+        try:
+            result = image_url.split("/image/upload/")[-1]
+            log.debug(f"Extracted public_id: {result}")
+            return result
+        except ValueError:
+            raise ValueError("Invalid Cloudinary URL")
+
 
     async def upload(self, file: UploadFile, user_email: str):
         # Завантажуємо файл до Cloudinary
@@ -57,15 +67,13 @@ class CloudinaryService:
             )
 
 
-    async def resize(self, image_url: str, width: int, height: int) -> str:
+    async def resize(self, image_url: str, width: int, height: int, crop: str) -> str:
         try:
             url, _ = cloudinary_url(
-                image_url,
+                self.extract_public_id(image_url),
                 width=width,
                 height=height,
-                crop="fill",
-                fetch_format="auto",
-                quality="auto",
+                crop=crop,
             )
             return url
         except Exception as e:
@@ -74,18 +82,20 @@ class CloudinaryService:
             )
 
     async def apply_filter(self, image_url: str, effect: str) -> str:
-        # Перевірка наявності ефекту
-        if effect not in ["grayscale", "sepia", "brightness", "contrast"]:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid effect. Available effects: grayscale, sepia, brightness, contrast.",
-            )
-        url, _ = cloudinary_url(image_url, transformation=[{"effect": effect}])
+        print(f"Applying effect: {effect}")
+        print(f"Image URL: {image_url}")
+        public_id = self.extract_public_id(image_url)
+        
+        print(f"Extracted public_id: {public_id}")
+        url, _ = cloudinary_url(
+            public_id,
+            transformation=[{"effect": effect}]
+        )
         return url
     
-    async def reduce_size(self, image_url: str) -> str:
+    async def change_format_and_quality(self, image_url: str, quality: str, format: str) -> str:
         url, _ = cloudinary_url(
-            image_url, quality="auto", fetch_format="auto", version="new_version"
+            self.extract_public_id(image_url), transformation=[{"quality": quality, "fetch_format": format}]
         )
         return url
 

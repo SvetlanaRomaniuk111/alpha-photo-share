@@ -13,7 +13,7 @@ async def get_all_for_user(user_id: UUID, db: AsyncSession):
     )
     result = await db.execute(stmt)
 
-    return result.scalars().all()
+    return result.unique().scalars().all()
 
 async def get(image_id: UUID, db: AsyncSession):
     stmt = select(TransformedImage).options(joinedload(TransformedImage.user)).filter(
@@ -21,8 +21,15 @@ async def get(image_id: UUID, db: AsyncSession):
     )
     result = await db.execute(stmt)
 
-    return result.scalar_one_or_none()
+    return result.unique().scalar_one_or_none()
 
+async def get_by_url(url: str, db: AsyncSession):
+    stmt = select(TransformedImage).options(joinedload(TransformedImage.user)).filter(
+        TransformedImage.url == url
+    )
+    result = await db.execute(stmt)
+
+    return result.unique().scalar_one_or_none()
 
 async def save(
     user_id: UUID, post_id: UUID, url: str, db: AsyncSession
