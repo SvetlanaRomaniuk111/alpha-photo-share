@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 from contextlib import asynccontextmanager
 import time
 from typing import AsyncGenerator
