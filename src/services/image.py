@@ -1,7 +1,7 @@
 from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
 from fastapi import HTTPException, UploadFile
-from src.core.config.config import CloudinaryConfig
+from src.core import config
 import cloudinary
 from cloudinary.api import delete_resources
 
@@ -11,9 +11,9 @@ class CloudinaryService:
         self,
     ):
         self.settings = cloudinary.config(
-            cloud_name=CloudinaryConfig.CLOUDINARY_NAME,
-            api_key=CloudinaryConfig.CLOUDINARY_API_KEY,
-            api_secret=CloudinaryConfig.CLOUDINARY_API_SECRET,
+            cloud_name=config.cloudinary_config.CLOUDINARY_NAME,
+            api_key=config.cloudinary_config.CLOUDINARY_API_KEY,
+            api_secret=config.cloudinary_config.CLOUDINARY_API_SECRET,
             secure=True,
         )
 
@@ -58,18 +58,23 @@ class CloudinaryService:
 
 
     async def resize(self, image_url: str, width: int, height: int) -> str:
-        url, _ = cloudinary_url(
-            image_url,
-            width=width,
-            height=height,
-            crop="fill",
-            fetch_format="auto",
-            quality="auto",
-        )
-        return url
+        try:
+            url, _ = cloudinary_url(
+                image_url,
+                width=width,
+                height=height,
+                crop="fill",
+                fetch_format="auto",
+                quality="auto",
+            )
+            return url
+        except Exception as e:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to resize image: {e}"
+            )
 
     async def apply_filter(self, image_url: str, effect: str) -> str:
-            # Перевірка наявності ефекту
+        # Перевірка наявності ефекту
         if effect not in ["grayscale", "sepia", "brightness", "contrast"]:
             raise HTTPException(
                 status_code=400,

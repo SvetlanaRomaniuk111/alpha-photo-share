@@ -26,7 +26,7 @@ async def get(image_id: UUID, db: AsyncSession):
 
 async def save(
     user_id: UUID, post_id: UUID, url: str, db: AsyncSession
-):
+) -> TransformedImage:
     new_entry = TransformedImage(
         user_id=user_id,
         post_id=post_id,

@@ -3,6 +3,14 @@ from datetime import datetime
 from uuid import UUID
 from typing import Any
 
+class TransformResponseImageSchema(BaseModel):
+    url: HttpUrl
+    post_id: UUID
+    created_at: datetime
+
+    model_config = {
+        "from_attributes": True
+    }
 
 class TransformedImageSchema(BaseModel):
     """
@@ -16,8 +24,7 @@ class TransformedImageSchema(BaseModel):
     """
 
     id: UUID
-    original_url: HttpUrl
-    transformed_url: HttpUrl
+    url: HttpUrl
     created_at: datetime
 
     class Config:

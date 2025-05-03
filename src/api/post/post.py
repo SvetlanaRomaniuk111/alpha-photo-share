@@ -16,9 +16,10 @@ from src.repository import posts as repositories_posts
 from src.schemas.post import  PostUpdateSchema, PostResponse
 from src.services.auth import auth_service
 from src.services.roles import RoleAccessService
+from src.services.image import cloudinary_service
 
 router = APIRouter(prefix='/posts', tags=['posts'])
-all_roles_access = RoleAccessService([role for role in Role ])
+all_roles_access = RoleAccessService([role for role in Role])
 
 
 @router.get('/', response_model=list[PostResponse], dependencies=[Depends(RateLimiter(times=10, seconds=20))])
@@ -43,8 +44,8 @@ async def get_post(post_id: UUID, db: AsyncSession = Depends(get_db)):
 async def create_post(title: str = Form(...), description: str = Form(...), image: UploadFile = File(...), db: AsyncSession = Depends(get_db),
                          user: User = Depends(all_roles_access)):
 
-    #TODO: add Svitlana`s service for image upload
-    post = await repositories_posts.create_post(title, description, "http://image_url.com", user.id, db)
+    image_url = await cloudinary_service.upload(image, user.email)
+    post = await repositories_posts.create_post(title, description, image_url, user.id, db)
     return post
 
 
