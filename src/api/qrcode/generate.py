@@ -1,26 +1,13 @@
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
 from typing import Optional
-from src.services.qr_code import QrCodeService, qrcode_service
 
-app = FastAPI()
+from fastapi import APIRouter, status, HTTPException, Depends
+from pydantic import HttpUrl
 
-class GenerateRequest(BaseModel):
-    data: str
-    size: Optional[int] = 200
+from src.schemas.qrcode import QrcodeResponseSchema
+from src.services.qr_code import qrcode_service
 
-@app.post("/qr/")
-async def generate_qr(request: GenerateRequest, qr_service: QrCodeService = Depends(lambda: qrcode_service)):
-    """
-    Generates a QR code based on the provided data.
+router = APIRouter(prefix='/qr', tags=['qr'])
 
-    Args:
-        request: The request containing the data to encode and the desired size.
-        qr_service: The QR code service dependency.
-
-    Returns:
-        A dictionary containing the SVG string of the QR code.
-    """
-    return {"svg_str": await qr_service.generateSvgAsync(request.data, request.size)}
-
-from fastapi.responses import Response
+@router.post("/generate", response_model=QrcodeResponseSchema, status_code=status.HTTP_200_OK)
+async def generate_qr_code(url: HttpUrl, size: Optional[int] = 200):
+    return await qrcode_service.generateSvgAsync(url, size)
