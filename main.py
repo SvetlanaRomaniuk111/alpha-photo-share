@@ -12,6 +12,7 @@ from fastapi_limiter import FastAPILimiter
 from src.models.users import Role, User
 from src.api.auth.auth import auth_router
 from src.api.general.check import general_check_router
+from src.api.qrcode import qr_code_router
 from src.services.roles import RoleAccessService
 from src.db.redis import redis_manager
 from src.repository.user import create_admin
@@ -81,6 +82,7 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/api")
 app.include_router(general_check_router, prefix="/api")
+app.include_router(qr_code_router, prefix="/api")
 
 
 if __name__ == "__main__":
