@@ -6,11 +6,10 @@ from uuid import UUID
 from src.repository.transformed_images import get_all_for_user, get as get_ti, save as save_ti, get_by_url
 from src.models.transformed_images import TransformedImage
 from src.schemas.enums import CloudinaryCropEnum, CloudinaryEffectEnum, CloudinaryQualityEnum, CloudinaryFormatEnum
-from src.services.qr_code import qrcode_service
 from src.services.image import cloudinary_service
 from src.db.database import get_db
 from src.services.auth import auth_service
-from src.models.users import User
+from src.models.users import Role, User
 from src.repository.posts import get_post
 from src.core import log
 from src.schemas.images import TransformResponseImageSchema
@@ -31,7 +30,7 @@ async def resize(
     post = await get_post(post_id, db)
     if not post:
         log.error(f"Post with id {post_id} not found")
-        raise HTTPException(status_code=404, detail="post not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     image_url = post.image_url
     transformed_url = await cloudinary_service.resize(image_url, width, height, crop.value)
     transformed_image_in_db = await get_by_url(transformed_url, db)
@@ -51,7 +50,7 @@ async def apply_filter(
     post = await get_post(post_id, db)
     if not post:
         log.error(f"Post with id {post_id} not found")
-        raise HTTPException(status_code=404, detail="post not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     limits = {
         "blur": (1, 200),
         "pixelate": (1, 200),
@@ -68,7 +67,7 @@ async def apply_filter(
 
     if min_val is not None and not (min_val <= value <= max_val):
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Effect '{effect.value}' must be in range [{min_val}, {max_val}].",
         )
 
@@ -92,7 +91,7 @@ async def reduce_size(
     post = await get_post(post_id, db)
     if not post:
         log.error(f"Post with id {post_id} not found")
-        raise HTTPException(status_code=404, detail="post not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     image_url = post.image_url
     transformed_url = await cloudinary_service.change_format_and_quality(image_url, quality.value, format.value)
     transformed_image_in_db = await get_by_url(transformed_url, db)
@@ -107,7 +106,7 @@ async def get_transformed_images_for_user(user: User = Depends(auth_service.auth
     user_id = user.id
     images = await get_all_for_user(user_id, db)
     if not images:
-        raise HTTPException(status_code=404, detail="No transformed images found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No transformed images found")
     return images
 
 
@@ -115,5 +114,22 @@ async def get_transformed_images_for_user(user: User = Depends(auth_service.auth
 async def get_transformed_image(id: UUID, db: AsyncSession = Depends(get_db)):
     image = await get_ti(id, db)
     if not image:
-        raise HTTPException(status_code=404, detail="Transform image not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transform image not found")
     return image
+
+@router.delete("/transformed_image/{id}")
+async def delete_transformed_image(
+    id: UUID,
+    user: User = Depends(auth_service.authenticate_user),
+    db: AsyncSession = Depends(get_db),
+):
+    if user.role != Role.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can delete links")
+
+    transformed_image = await get_ti(id, db)
+    if not transformed_image:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
+
+    await db.delete(transformed_image)
+    await db.commit()
+    return {"message": "Link to the transformed image has been deleted"}
