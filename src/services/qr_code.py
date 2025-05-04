@@ -2,21 +2,9 @@ import qrcode
 from qrcode.image.svg import SvgPathFillImage
 from qrcode.image.pil import PilImage
 import asyncio
-
+from PIL import Image
 class QrCodeService:
-    def __init__(self):
-        """
-        QrCode service initialization.
-        """
-        pass
-
-    async def generatePilImageAsync(self, data:str) -> PilImage:
-        """
-        Asynchronously generates a QR code in PilImage format based on the provided data.
-
-        :param data: Data to encode in the QR code.
-        :return: PilImage object of the generated QR code.
-        """
+    async def generatePilImageAsync(self, data: str, size: int = 200) -> Image:
         qr = qrcode.QRCode(
             error_correction=qrcode.constants.ERROR_CORRECT_H,
             box_size=10,
@@ -24,15 +12,13 @@ class QrCodeService:
         )
         qr.add_data(data)
         qr.make(fit=True)
-        return qr.make_image(fill_color="black", back_color="white")
+        img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
 
-    def generatePilImage(self, data:str) -> PilImage:
-        """
-        Synchronously generates a QR code in PilImage format based on the provided data.
+        # Масштабируем изображение до нужного размера
+        img = img.resize((size, size), Image.Resampling.LANCZOS)
+        return img
 
-        :param data: Data to encode in the QR code.
-        :return: PilImage object of the generated QR code.
-        """
+    def generatePilImage(self, data: str, size: int = 200) -> Image:
         qr = qrcode.QRCode(
             error_correction=qrcode.constants.ERROR_CORRECT_H,
             box_size=10,
@@ -40,7 +26,11 @@ class QrCodeService:
         )
         qr.add_data(data)
         qr.make(fit=True)
-        return qr.make_image(fill_color="black", back_color="white")
+        img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
+
+        # Масштабируем изображение до нужного размера
+        img = img.resize((size, size), Image.Resampling.LANCZOS)
+        return img
     
     async def generateSvgAsync(self, data:str, size:int=200) -> str:
         """
