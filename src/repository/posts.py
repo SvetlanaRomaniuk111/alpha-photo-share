@@ -59,3 +59,8 @@ async def delete_post(post_id: UUID, db: AsyncSession):
         await db.delete(post)
         await db.commit()
     return post
+
+async def count_user_photos(user_id: UUID, db: AsyncSession) -> int:
+    stmt = select(Post).filter(Post.user_id == user_id)
+    result = await db.execute(stmt)
+    return len(result.scalars().all())

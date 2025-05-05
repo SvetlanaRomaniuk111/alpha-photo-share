@@ -60,6 +60,8 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = 
     user = await repositories_users.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email")
+    if not user.is_active:
+         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is banned and cannot log in")
     if not auth_service.verify_password(body.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
     # Generate JWT

@@ -10,6 +10,7 @@ from sqlalchemy import delete, select
 from src.core import config, log
 from src.services.auth import auth_service
 from datetime import datetime, timezone
+from uuid import UUID
 
 
 async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
@@ -114,3 +115,26 @@ async def create_admin(db: AsyncSession) -> User:
     await db.commit()
     await db.refresh(admin_user)
     return admin_user  # Ensure the newly created admin user is returned
+
+
+async def get_user_by_id(user_id: UUID, db: AsyncSession):
+    stmt = select(User).filter(User.id == user_id)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def update_user_profile(user: User, full_name: str, email: str, db: AsyncSession):
+    user.full_name = full_name
+    user.email = email
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+
+async def ban_user(user_id: UUID, db: AsyncSession):
+    user = await get_user_by_id(user_id, db)
+    if user:
+        user.is_active = False
+        await db.commit()
+        await db.refresh(user)
+    return user

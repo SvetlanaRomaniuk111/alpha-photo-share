@@ -53,4 +53,10 @@ class User(Base):
         "role", Enum(Role), nullable=False, default=Role.user
     )
 
-    posts: Mapped[list["Post"]] = relationship("Post", back_populates="user", lazy="joined")
+    posts: Mapped[list["Post"]] = relationship(
+        "Post", back_populates="user", lazy="joined"
+    )
+
+    is_active: Mapped[bool] = mapped_column(
+        Boolean(), default=True, nullable=False, server_default=text("true")
+    )
