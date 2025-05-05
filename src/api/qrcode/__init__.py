@@ -1,0 +1,1 @@
+from .generate import router as qr_code_router

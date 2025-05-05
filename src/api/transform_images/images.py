@@ -13,8 +13,10 @@ from src.models.users import Role, User
 from src.repository.posts import get_post
 from src.core import log
 from src.schemas.images import TransformResponseImageSchema
+from src.services.roles import RoleAccessService
 
 router = APIRouter(prefix="/images", tags=["images"])
+admin_moderator_roles_access = RoleAccessService([Role.admin, Role.moderator])
 
 
 @router.post("/resize", response_model=TransformResponseImageSchema, status_code=status.HTTP_201_CREATED)
@@ -117,19 +119,15 @@ async def get_transformed_image(id: UUID, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transform image not found")
     return image
 
-@router.delete("/transformed_image/{id}")
+@router.delete("/transformed_image/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_transformed_image(
     id: UUID,
-    user: User = Depends(auth_service.authenticate_user),
+    user: User = Depends(admin_moderator_roles_access),
     db: AsyncSession = Depends(get_db),
 ):
-    if user.role != Role.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only administrators can delete links")
-
     transformed_image = await get_ti(id, db)
     if not transformed_image:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Link not found")
 
     await db.delete(transformed_image)
     await db.commit()
-    return {"message": "Link to the transformed image has been deleted"}

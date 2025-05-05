@@ -24,6 +24,7 @@ python-multipart = "^0.0.20"
 cloudinary = "^1.44.0"
 qrcode = "^8.1"
 pillow = "^11.2.1"
+httpx = "^0.28.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"

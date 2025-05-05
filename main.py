@@ -1,3 +1,5 @@
+#!/bin/env python3
+
 from contextlib import asynccontextmanager
 import time
 from typing import AsyncGenerator
@@ -13,6 +15,7 @@ from src.api.general.check import general_check_router
 from src.api.transform_images import images_router
 from src.api.comment import comments_router
 from src.api.user import user_router
+from src.api.qrcode import qr_code_router
 from src.services.roles import RoleAccessService
 from src.db.redis import redis_manager
 from src.repository.user import create_admin
@@ -87,6 +90,7 @@ app.include_router(images_router, prefix="/api")
 app.include_router(comments_router, prefix="/api")
 app.include_router(user_router, prefix="/api")
 
+app.include_router(qr_code_router, prefix="/api")
 
 
 if __name__ == "__main__":
