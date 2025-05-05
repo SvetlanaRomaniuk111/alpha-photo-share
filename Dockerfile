@@ -1,17 +1,19 @@
-FROM python:3.13-slim
+FROM python:3.13.3-alpine3.20
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    cargo \
+    rust \
+    openssl-dev \
+    build-base
 WORKDIR /app
+ENV PYTHONPATH=/app
 COPY requirements.txt /app/
 RUN pip install --upgrade pip
-RUN apt-get update && apt-get install -y gcc python3-dev libpq-dev postgresql-client locales gettext && rm -rf /var/lib/apt/lists/*
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
-    sed -i '/ru_RU.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
-RUN dpkg-reconfigure --frontend=noninteractive locales && \
-    locale-gen ru_RU.UTF-8 && \
-    update-locale LANG=ru_RU.UTF-8
-ENV LANG=ru_RU.UTF-8
-ENV LANGUAGE=ru_RU:ru
-ENV LC_ALL=ru_RU.UTF-8
-RUN pip install --upgrade pip setuptools wheel
 RUN pip install -r requirements.txt
 COPY . /app/
-CMD ["uvicorn", "fastapi_project.main:app", "--host", "0.0.0.0", "--port", "3245", "--workers", "3", "--timeout-keep-alive", "120"]
+RUN apk add --no-cache postgresql-client
+RUN dos2unix /app/scripts/entrypoint_backend.sh
+RUN chmod +x /app/scripts/entrypoint_backend.sh
+COPY --chmod=0644 .env /app/
