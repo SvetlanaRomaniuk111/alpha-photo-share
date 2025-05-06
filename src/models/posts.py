@@ -1,8 +1,8 @@
-import enum
-from datetime import datetime, date
+
+from datetime import datetime
 from sqlalchemy.dialects.postgresql import UUID
 
-from sqlalchemy import Boolean, String, Integer, DateTime, ForeignKey, Enum, Date, func, text
+from sqlalchemy import  String, Integer, DateTime, ForeignKey, func, text
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from src.db.base import Base
@@ -51,7 +51,7 @@ class PostTag(Base):
     __tablename__ = "post_tags"
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"))
     post_id: Mapped[UUID] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"))
-    tag_name: Mapped[str] = mapped_column(ForeignKey("tags.id", ondelete="CASCADE"))
+    tag_id: Mapped[str] = mapped_column(ForeignKey("tags.id", ondelete="CASCADE"))
 
     post: Mapped["Post"] = relationship("Post", back_populates="tags")
     tag: Mapped["Tag"] = relationship("Tag", back_populates="post_tags")

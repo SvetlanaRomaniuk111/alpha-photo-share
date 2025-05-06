@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 
-from src.api.post import post_router
+from src.api.post import post_router, tag_router
 from src.models.users import Role, User
 from src.api.auth.auth import auth_router
 from src.api.general.check import general_check_router
@@ -80,6 +80,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api")
 app.include_router(post_router, prefix="/api")
 app.include_router(general_check_router, prefix="/api")
+app.include_router(tag_router, prefix="/api")
 
 
 if __name__ == "__main__":
