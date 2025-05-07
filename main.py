@@ -13,8 +13,9 @@ from src.models.users import Role, User
 from src.api.auth.auth import auth_router
 from src.api.general.check import general_check_router
 from src.api.transform_images import images_router
+from src.api.comment import comments_router, admin_moderator_comments_router
+from src.api.user import user_router, admin_moderator_work_with_user_router
 from src.api.qrcode import qr_code_router
-from src.services.roles import RoleAccessService
 from src.db.redis import redis_manager
 from src.repository.user import create_admin
 from src.db.database import sessionmanager
@@ -87,8 +88,11 @@ app.include_router(post_router, prefix="/api")
 app.include_router(general_check_router, prefix="/api")
 app.include_router(tag_router, prefix="/api")
 app.include_router(images_router, prefix="/api")
+app.include_router(comments_router, prefix="/api")
+app.include_router(user_router, prefix="/api")
 app.include_router(qr_code_router, prefix="/api")
-
+app.include_router(admin_moderator_comments_router, prefix="/api")
+app.include_router(admin_moderator_work_with_user_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn

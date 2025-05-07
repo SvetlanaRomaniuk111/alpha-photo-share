@@ -55,6 +55,7 @@ class Comment(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )
+    
     post: Mapped["Post"] = relationship("Post", back_populates="comments")
 
 
