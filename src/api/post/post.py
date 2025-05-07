@@ -75,7 +75,7 @@ async def update_post(title: Optional[str], description: Optional[str], post_id:
 
     post = await repositories_posts.get_post(post_id, db)
 
-    if post.user_id != user.id:
+    if post.user_id != user.id or user.role != Role.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this post")
 
     if title is None and description is None:
@@ -91,7 +91,7 @@ async def update_post(title: Optional[str], description: Optional[str], post_id:
 async def delete_post( post_id: UUID, user: User = Depends(all_roles_access), db: AsyncSession = Depends(get_db)):
     post = await repositories_posts.get_post(post_id, db)
 
-    if post.user_id != user.id:
+    if post.user_id != user.id or user.role != Role.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this post")
 
     post = await repositories_posts.delete_post(post_id, db)
