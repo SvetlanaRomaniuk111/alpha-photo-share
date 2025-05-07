@@ -1,5 +1,4 @@
-#TODO: add tag, tags to post, delete tag from post, get all tags for post, get all posts for user by tag 
-# delete tag from PostTag table (interrelations between Post and Tag only ) 
+
 
 from typing import List
 from uuid import UUID
@@ -33,18 +32,30 @@ async def get_tags_for_post(post_id: UUID, db: AsyncSession = Depends(get_db)):
 @router.post('/', response_model=PostResponseSchema, status_code=status.HTTP_201_CREATED, dependencies=[Depends(RateLimiter(times=10, seconds=20))])
 async def add_tag_for_post(post_id: UUID, tag_name: str, db: AsyncSession = Depends(get_db),
                          user: User = Depends(all_roles_access)):
+    
+    post = await repositories_posts.get_post(post_id,db) 
+    
+    if post.user_id != user.id or user.role != Role.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to add tags to this post")
+
     try:
         await repositories_posts.add_tag_for_post(post_id, tag_name, db)
     except IntegrityError:
         raise HTTPException(status_code=400, detail="Cannot add more than 5 tags to a post.")
+    
     return await repositories_posts.get_post(post_id, db)
 
 @router.delete('/', status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(RateLimiter(times=10, seconds=20))])
-async def delete_tag_from_post(tag_name: str, post_id: UUID, db: AsyncSession = Depends(get_db)):
+async def delete_tag_from_post(tag_name: str, post_id: UUID, db: AsyncSession = Depends(get_db), user: User = Depends(all_roles_access)):
     tag = await repositories_tags.get_tag_by_name(tag_name, db)
+    
     if tag is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="tag not found")
     post = await repositories_posts.get_post(post_id, db)
+
+    if post.user_id != user.id or user.role != Role.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to add tags to this post")
+    
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     await repositories_tags.delete_tag_from_post(tag, post, db)

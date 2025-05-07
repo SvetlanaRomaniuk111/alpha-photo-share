@@ -47,12 +47,7 @@ async def get_posts_by_tag(tag_name: str, db: AsyncSession):
     return result.unique().scalars().all()
 
 
-#TODO: add_tag_for_post
-# args - post_id, name
-# call get_post(post_id) and check 
-# if post not exist -> err NotFoundError
-# if post exists call add_tag(post_id, name) from tags repo 
-# add (post_id, tag_id) to PostTag table
+
 async def add_tag_for_post(post_id: UUID, name: str, db: AsyncSession):
 
     tag_id = await add_tag(name, db) 
