@@ -172,6 +172,8 @@ class Auth:
             await redis.expire(f"user:{email}", 900)
         else:
             user = pickle.loads(user)
+        
+
         return user
 
 

@@ -16,9 +16,10 @@ from src.models.users import Role
 from src.repository import posts as repositories_posts
 from src.schemas.post import PostResponseSchema
 from src.services.roles import RoleAccessService
+from src.services.image import cloudinary_service
 
 router = APIRouter(prefix='/posts', tags=['posts'])
-all_roles_access = RoleAccessService([role for role in Role ])
+all_roles_access = RoleAccessService([role for role in Role])
 
 
 @router.get('/', response_model=list[PostResponseSchema], dependencies=[Depends(RateLimiter(times=10, seconds=20))])
@@ -50,13 +51,17 @@ async def get_posts_by_tag(tag_name: str, db: AsyncSession = Depends(get_db)):
 @router.post('/', response_model=PostResponseSchema, status_code=status.HTTP_201_CREATED, dependencies=[Depends(RateLimiter(times=10, seconds=20))])
 async def create_post(title: str = Form(...), description: str = Form(...), image: UploadFile = File(...),tags: Optional[List[str]] = Form(default=[]), db: AsyncSession = Depends(get_db),
                          user: User = Depends(all_roles_access)):
-
     tags = tags[0].split(",")
     if len(tags) > 5:
         raise HTTPException(status_code=400, detail="You can add up to 5 tags only.")
-    #TODO: add Svitlana`s service for image upload
+    if not image.content_type.startswith('image/'):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File is not an image")
+    image_url = await cloudinary_service.upload(image, user.email)
     
-    post = await repositories_posts.create_post(title, description, "http://image_url.com", user.id, db)
+    try:
+        post = await repositories_posts.create_post(title, description, image_url, user.id, db)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to create post: {e}")
     for tag_name in tags:
         cleaned_tag = tag_name.strip()
         if cleaned_tag:
