@@ -14,7 +14,7 @@ from src.db.database import get_db
 from src.models import User
 from src.models.users import Role
 from src.repository import posts as repositories_posts
-from src.schemas.post import  PostUpdateSchema, PostResponseSchema
+from src.schemas.post import PostResponseSchema
 from src.services.roles import RoleAccessService
 
 router = APIRouter(prefix='/posts', tags=['posts'])
@@ -51,37 +51,32 @@ async def get_posts_by_tag(tag_name: str, db: AsyncSession = Depends(get_db)):
 async def create_post(title: str = Form(...), description: str = Form(...), image: UploadFile = File(...),tags: Optional[List[str]] = Form(default=[]), db: AsyncSession = Depends(get_db),
                          user: User = Depends(all_roles_access)):
 
-
+    tags = tags[0].split(",")
     if len(tags) > 5:
         raise HTTPException(status_code=400, detail="You can add up to 5 tags only.")
     #TODO: add Svitlana`s service for image upload
     
     post = await repositories_posts.create_post(title, description, "http://image_url.com", user.id, db)
-    
-    if await repositories_posts.get_post(post.id, db) is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid post data") 
-
-    if tags is None:
-        return post
-
     for tag_name in tags:
-        await repositories_posts.add_tag_for_post(post.id, tag_name, db)
+        cleaned_tag = tag_name.strip()
+        if cleaned_tag:
+            await repositories_posts.add_tag_for_post(post.id, cleaned_tag, db)
 
     return await repositories_posts.get_post(post.id, db)
 
 
 @router.patch("/{post_id}", response_model=PostResponseSchema, dependencies=[Depends(RateLimiter(times=10, seconds=20))])
-async def update_post(body: PostUpdateSchema, post_id: UUID, user: User = Depends(all_roles_access), db: AsyncSession = Depends(get_db)):
+async def update_post(title: Optional[str], description: Optional[str], post_id: UUID, user: User = Depends(all_roles_access), db: AsyncSession = Depends(get_db)):
 
     post = await repositories_posts.get_post(post_id, db)
 
     if post.user_id != user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this post")
 
-    if body.title is None and body.description is None:
+    if title is None and description is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
 
-    post = await repositories_posts.update_post(body, post_id, db)
+    post = await repositories_posts.update_post(title, description, post_id, db)
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post

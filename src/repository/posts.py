@@ -1,40 +1,50 @@
 from typing import List, Optional
 from sqlalchemy import UUID, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.models import Post, User
 from src.models.posts import PostTag, Tag
-from src.schemas.post import  PostUpdateSchema
-from src.repository.exceptions import NotFoundError
 from src.repository.tags import add_tag
 
 
 # get all posts with pagination
 async def get_posts(limit: int, offset: int, db: AsyncSession):
-
-    stmt = select(Post).offset(offset).limit(limit).join(Post.tags)
-    posts = await db.execute(stmt)
-    return posts.scalars().all()
+    result = await db.execute(
+        select(Post)
+        .options(
+            joinedload(Post.tags).joinedload(PostTag.tag)
+        )
+        .offset(offset).limit(limit)
+    )
+    return result.scalars().unique().all()
 
 
 # get one post by id
 async def get_post(post_id: UUID, db: AsyncSession):
-
-    stmt = (
+    result = await db.execute(
         select(Post)
+        .options(
+            joinedload(Post.tags).joinedload(PostTag.tag)
+        )
         .where(Post.id == post_id)
-        .join(PostTag, PostTag.post_id == Post.id)
-        .join(Tag, Tag.id == PostTag.tag_id)
     )
-    post = await db.execute(stmt)
-    return post.scalar_one_or_none()
+    post = result.unique().scalar_one_or_none()
+    return post
     
 
 
 async def get_posts_by_tag(tag_name: str, db: AsyncSession):
-    stmt = select(Post).join(Post.tags).where(Tag.name == tag_name)
-    post = await db.execute(stmt)
-    return post.scalars().all()
+    result = await db.execute(
+        select(Post)
+        .join(Post.tags)
+        .join(PostTag.tag)
+        .options(
+            selectinload(Post.tags).selectinload(PostTag.tag)  
+        )
+        .where(Tag.name == tag_name)
+    )
+    return result.unique().scalars().all()
 
 
 #TODO: add_tag_for_post
@@ -45,12 +55,12 @@ async def get_posts_by_tag(tag_name: str, db: AsyncSession):
 # add (post_id, tag_id) to PostTag table
 async def add_tag_for_post(post_id: UUID, name: str, db: AsyncSession):
 
-    tag = await add_tag(name, db) 
-    post_tag = PostTag(post_id=post_id, tag_id=tag.id)
+    tag_id = await add_tag(name, db) 
+    post_tag = PostTag(post_id=post_id, tag_id=tag_id)
     db.add(post_tag)
     await db.commit()
     await db.refresh(post_tag)
-    return post_tag
+
     
 
 
@@ -73,16 +83,16 @@ async def create_post(title: str, description: str, image_url: str, user_id: UUI
    
 
 # update post
-async def update_post(body: PostUpdateSchema, post_id: UUID, db: AsyncSession):
+async def update_post(title, description, post_id: UUID, db: AsyncSession):
 
     stmt = select(Post).where(Post.id == post_id)
     result = await db.execute(stmt)
     post = result.scalar_one_or_none()
     if post:
-        if body.title is not None:
-            post.title = body.title
-        if body.description is not None:
-            post.description = body.description
+        if title is not None:
+            post.title = title
+        if description is not None:
+            post.description = description
         await db.commit()
         await db.refresh(post)
     return post

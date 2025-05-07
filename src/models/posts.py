@@ -24,7 +24,12 @@ class Post(Base):
 
     user: Mapped["User"] = relationship("User", back_populates="posts")
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="post")
-    tags: Mapped[list["PostTag"]] = relationship("PostTag", back_populates="post")
+    tags: Mapped[list["PostTag"]] = relationship(
+        "PostTag",
+        back_populates="post",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
     ratings: Mapped[list["PostRating"]] = relationship("PostRating", back_populates="post")
 
 class Comment(Base):

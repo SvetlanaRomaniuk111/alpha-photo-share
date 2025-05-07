@@ -2,7 +2,7 @@ from sqlalchemy import event
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
-from src.models import PostTag
+from src.models.posts import PostTag
 
 @event.listens_for(Session, "before_flush")
 def validate_max_five_tags(session, flush_context, instances):
