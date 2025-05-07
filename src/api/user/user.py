@@ -6,7 +6,7 @@ from src.db.database import get_db
 from src.models.users import User
 from src.models.posts import Post
 from src.services.auth import auth_service
-from src.schemas.user import UserProfileSchema
+from src.schemas.user import UserProfileSchema, UpdateUserProfileSchema
 from src.services.roles import RoleAccessService, Role
 from src.repository.posts import count_user_photos
 from src.repository.user import update_user_profile, get_user_by_email, ban_user
@@ -21,22 +21,6 @@ async def get_user_profile(email: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
 
     photo_count = await count_user_photos(user.id, db)
-    return {
-        "id": user.id,
-        "email": user.email,
-        "full_name": user.full_name,
-        "created_at": user.created_at,
-        "photo_count": photo_count,
-    }
-
-
-@router.get("/me", response_model=UserProfileSchema)
-async def get_my_profile(user: User = Depends(auth_service.authenticate_user), db: AsyncSession = Depends(get_db)):
-    if not user:
-        raise HTTPException(status_code=401, detail="User is not authenticated")
-
-    photo_count = await count_user_photos(user.id, db)
-
     return UserProfileSchema(
         id=user.id,
         email=user.email,
@@ -48,6 +32,17 @@ async def get_my_profile(user: User = Depends(auth_service.authenticate_user), d
 
 @router.put("/me", response_model=UserProfileSchema)
 async def update_my_profile(
+    profile_data: UpdateUserProfileSchema,
+    user: User = Depends(auth_service.authenticate_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await update_user_profile(
+        user, profile_data.full_name, profile_data.email, db
+    )
+
+
+@router.put("/me", response_model=UserProfileSchema)
+async def update_my_profile_with_details(
     full_name: str,
     email: str,
     user: User = Depends(auth_service.authenticate_user),
@@ -56,14 +51,16 @@ async def update_my_profile(
     return await update_user_profile(user, full_name, email, db)
 
 
-@router.put("/{user_id}/ban")
-async def ban_user_endpoint(
-    user_id: UUID,
-    admin: User = Depends(RoleAccessService([Role.admin])),
-    db: AsyncSession = Depends(get_db),
-):
-    user = await ban_user(user_id, db)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+# @router.put("/{user_id}/ban")
+# async def ban_user_endpoint(
+#     user_id: UUID,
+#     admin: User = Depends(RoleAccessService([Role.admin])),
+#     db: AsyncSession = Depends(get_db),
+# ):
+#     user = await ban_user(user_id, db)
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found")
+#     if user.is_banned:
+#         return {"message": f"User {user.email} is already banned"}
 
-    return {"message": f"User {user.email} has been banned"}
+#     return {"message": f"User {user.email} has been banned"}

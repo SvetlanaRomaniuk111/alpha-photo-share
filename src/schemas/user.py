@@ -36,3 +36,7 @@ class UserProfileSchema(BaseModel):
     email: str
     created_at: datetime
     photo_count: int
+
+class UpdateUserProfileSchema(BaseModel):
+    full_name: str
+    email: EmailStr
