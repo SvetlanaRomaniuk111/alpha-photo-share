@@ -121,7 +121,7 @@ async def create_admin(db: AsyncSession) -> User:
 async def get_user_by_id(user_id: UUID, db: AsyncSession):
     stmt = select(User).filter(User.id == user_id)
     result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    return result.unique().scalar_one_or_none()
 
 async def update_user_profile(user: User,
         full_name: Optional[str],

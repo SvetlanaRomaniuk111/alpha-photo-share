@@ -56,12 +56,12 @@ async def update_profile(
     return await update_user_profile(user, full_name, age, gender, password, db)
 
 
-@router.patch("/ban/{user_id}", status_code=status.HTTP_200_OK, dependencies=[Depends(RoleAccessService([Role.admin]))])
+@router_admin_moderator_work_with_user.patch("/ban/{user_id}", status_code=status.HTTP_200_OK, dependencies=[Depends(RoleAccessService([Role.admin]))])
 async def ban_user_endpoint(
     user_id: UUID,
     db: AsyncSession = Depends(get_db),
 ):
-    user: User = await get_user_by_id(user_id)
+    user = await get_user_by_id(user_id, db)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.is_active:
