@@ -1,4 +1,4 @@
-from sqlalchemy import UUID, select
+from sqlalchemy import UUID, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Post, User
@@ -61,6 +61,6 @@ async def delete_post(post_id: UUID, db: AsyncSession):
     return post
 
 async def count_user_photos(user_id: UUID, db: AsyncSession) -> int:
-    stmt = select(Post).filter(Post.user_id == user_id)
+    stmt = select(func.count()).select_from(Post).filter(Post.user_id == user_id)
     result = await db.execute(stmt)
-    return len(result.scalars().all())
+    return result.scalar_one()

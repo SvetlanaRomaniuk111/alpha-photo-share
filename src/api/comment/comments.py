@@ -12,7 +12,7 @@ from src.repository.posts import get_post
 from src.repository import comments as repository_comments
 
 router = APIRouter(prefix="/comments", tags=["comments"])
-router_admin_moderator = APIRouter(prefix="/comments", tags=["admin"])
+router_admin_moderator_comments = APIRouter(prefix="/admin_moderator", tags=["admin or moderator"])
 all_roles_access = RoleAccessService([role for role in Role])
 admin_or_moderator_access = RoleAccessService([Role.admin, Role.moderator])
 admin_or_moderator = [Role.admin, Role.moderator]
@@ -56,7 +56,7 @@ async def update_comment(
     return await repository_comments.update_comment(comment_id, message, db)
 
 
-@router_admin_moderator.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router_admin_moderator_comments.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_comment(
     comment_id: UUID,
     user: User = Depends(admin_or_moderator_access),

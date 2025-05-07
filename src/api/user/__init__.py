@@ -1,1 +1,1 @@
-from .user import router as user_router
+from .user import router as user_router, router_admin_moderator_work_with_user as admin_moderator_work_with_user_router

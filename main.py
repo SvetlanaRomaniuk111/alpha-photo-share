@@ -12,8 +12,8 @@ from src.api.post import post_router
 from src.api.auth.auth import auth_router
 from src.api.general.check import general_check_router
 from src.api.transform_images import images_router
-from src.api.comment import comments_router, admin_moderator_router
-from src.api.user import user_router
+from src.api.comment import comments_router, admin_moderator_comments_router
+from src.api.user import user_router, admin_moderator_work_with_user_router
 from src.api.qrcode import qr_code_router
 from src.db.redis import redis_manager
 from src.repository.user import create_admin
@@ -87,9 +87,9 @@ app.include_router(general_check_router, prefix="/api")
 app.include_router(images_router, prefix="/api")
 app.include_router(comments_router, prefix="/api")
 app.include_router(user_router, prefix="/api")
-
 app.include_router(qr_code_router, prefix="/api")
-app.include_router(admin_moderator_router, prefix="/api")
+app.include_router(admin_moderator_comments_router, prefix="/api")
+app.include_router(admin_moderator_work_with_user_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,16 +1,17 @@
-from typing import List
+from typing import List, Optional
+from uuid import UUID
+from datetime import datetime, timezone
+
 from fastapi import Depends
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.database import get_db
-from src.models.users import Role, User
+from src.models.users import Role, User, Gender
 from src.schemas.user import UserCreationSchema
-from sqlalchemy import delete, select
-
 from src.core import config, log
 from src.services.auth import auth_service
-from datetime import datetime, timezone
-from uuid import UUID
+
 
 
 async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
@@ -122,17 +123,29 @@ async def get_user_by_id(user_id: UUID, db: AsyncSession):
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
+async def update_user_profile(user: User,
+        full_name: Optional[str],
+        age: Optional[int],
+        gender: Optional[Gender],
+        password: Optional[str],
+        db: AsyncSession
+    ):
 
-async def update_user_profile(user: User, full_name: str, email: str, db: AsyncSession):
-    user.full_name = full_name
-    user.email = email
+    if full_name is not None:
+        user.full_name = full_name
+    if age is not None:
+        user.age = age
+    if gender is not None:
+        user.gender = gender
+    if password is not None:
+        user.password = auth_service.get_password_hash(password)
+    db.add(user)
     await db.commit()
     await db.refresh(user)
     return user
 
 
-async def ban_user(user_id: UUID, db: AsyncSession):
-    user = await get_user_by_id(user_id, db)
+async def ban_user(user: User, db: AsyncSession):
     if user:
         user.is_active = False
         await db.commit()

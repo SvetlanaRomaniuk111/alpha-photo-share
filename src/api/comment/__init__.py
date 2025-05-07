@@ -1,1 +1,1 @@
-from .comments import router as comments_router, router_admin_moderator as admin_moderator_router
+from .comments import router as comments_router, router_admin_moderator_comments as admin_moderator_comments_router

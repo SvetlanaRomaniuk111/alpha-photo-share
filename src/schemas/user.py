@@ -30,13 +30,20 @@ class TokenSchema(BaseModel):
     token_type: str = "bearer"
 
 class UserProfileSchema(BaseModel):
-    id: UUID
-    email: str
+    email: EmailStr
     full_name: str
-    email: str
-    created_at: datetime
+    gender: Gender
+    age: int
     photo_count: int
 
 class UpdateUserProfileSchema(BaseModel):
     full_name: str
     email: EmailStr
+
+class UserMeSchema(BaseModel):
+    email: EmailStr
+    full_name: str
+    gender: Gender
+    age: int
+    created_at: datetime
+    updated_at: datetime
