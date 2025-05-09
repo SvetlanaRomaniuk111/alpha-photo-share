@@ -5,9 +5,6 @@ from src.core.config.base_config import app_config, INFO_LOG_FILE, ERROR_LOG_FIL
 
 
 class ErrorTypeFilter(logging.Filter):
-    """
-    Фильтр для логгера, который пропускает только сообщения определенного типа.
-    """
     def __init__(self, allowed_levels):
         super().__init__()
         self.allowed_levels = allowed_levels

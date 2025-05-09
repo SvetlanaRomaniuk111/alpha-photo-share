@@ -21,6 +21,15 @@ fastapi-limiter = "^0.1.6"
 pydantic-settings = "^2.9.1"
 asyncpg = "^0.30.0"
 python-multipart = "^0.0.20"
+cloudinary = "^1.44.0"
+qrcode = "^8.1"
+pillow = "^11.2.1"
+httpx = "^0.28.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+httpx = "^0.28.1"
+pytest-asyncio = "^0.26.0"
 
 [build-system]
 requires = ["poetry-core"]

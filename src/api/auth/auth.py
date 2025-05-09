@@ -14,23 +14,6 @@ get_refresh_token = HTTPBearer()
 
 @auth_router.post("/signup", response_model=UserResponseSchema, status_code=status.HTTP_201_CREATED)
 async def signup(body: UserCreationSchema, request: Request, db: AsyncSession = Depends(get_db)):
-    """
-    Sign up a new user.
-
-    This endpoint allows a new user to create an account. If the email already exists, a conflict is raised.
-    The password is hashed before being saved. A confirmation email is sent after the user is created.
-
-    Args:
-        body (UserCreationSchema): The user creation data, including email and password.
-        request (Request): The HTTP request object to retrieve base URL for email.
-        db (AsyncSession, optional): The database session. Defaults to Depends(get_db).
-
-    Raises:
-        HTTPException: If the user already exists (409 Conflict).
-
-    Returns:
-        UserResponseSchema: The newly created user details.
-    """
     exist_user = await repositories_users.get_user_by_email(body.email, db)
     if exist_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Account already exists")
@@ -41,25 +24,11 @@ async def signup(body: UserCreationSchema, request: Request, db: AsyncSession = 
 
 @auth_router.post("/login",  response_model=TokenSchema)
 async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    """
-    Log in a user and return JWT tokens.
-
-    This endpoint allows a user to log in by providing their credentials. If the credentials are valid,
-    an access token and a refresh token are generated and returned.
-
-    Args:
-        body (OAuth2PasswordRequestForm): The login credentials (username and password).
-        db (AsyncSession, optional): The database session. Defaults to Depends(get_db).
-
-    Raises:
-        HTTPException: If the user credentials are invalid or the email is not verified (401 Unauthorized).
-
-    Returns:
-        dict: A dictionary containing the access token, refresh token, and token type.
-    """
     user = await repositories_users.get_user_by_email(body.username, db)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email")
+    if not user.is_active:
+         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is banned and cannot log in")
     if not auth_service.verify_password(body.password, user.password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid password")
     # Generate JWT
@@ -72,22 +41,6 @@ async def login(body: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = 
 @auth_router.get('/refresh_token',  response_model=TokenSchema)
 async def refresh_token(credentials: HTTPAuthorizationCredentials = Depends(get_refresh_token),
                         db: AsyncSession = Depends(get_db)):
-    """
-    Refresh the access token using the refresh token.
-
-    This endpoint allows the user to refresh their access token by providing a valid refresh token.
-    A new access token and refresh token are returned.
-
-    Args:
-        credentials (HTTPAuthorizationCredentials): The HTTP credentials containing the refresh token.
-        db (AsyncSession, optional): The database session. Defaults to Depends(get_db).
-
-    Raises:
-        HTTPException: If the refresh token is invalid or does not match the one stored for the user (401 Unauthorized).
-
-    Returns:
-        dict: A dictionary containing the new access token, refresh token, and token type.
-    """
     token = credentials.credentials
     email = await auth_service.decode_refresh_token(token)
     user = await repositories_users.get_user_by_email(email, db)

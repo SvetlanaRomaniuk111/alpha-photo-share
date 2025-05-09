@@ -13,7 +13,6 @@ class RedisSessionManager:
         )
 
     async def connect(self):
-        """Опциональный метод, если нужно явно проверять подключение"""
         try:
             await self._redis_client.ping()
         except Exception as e:
@@ -41,6 +40,5 @@ redis_manager = RedisSessionManager(
 
 
 async def get_redis():
-    """Функція-залежність для отримання сесії Redis у FastAPI"""
     async with redis_manager.session() as redis:
         yield redis

@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import Annotated
-
-
+from uuid import UUID
+from datetime import datetime
 from pydantic import BaseModel, Field, EmailStr, HttpUrl
 
 from src.models.users import Role, Gender
@@ -29,3 +29,21 @@ class TokenSchema(BaseModel):
     refresh_token: str
     token_type: str = "bearer"
 
+class UserProfileSchema(BaseModel):
+    email: EmailStr
+    full_name: str
+    gender: Gender
+    age: int
+    photo_count: int
+
+class UpdateUserProfileSchema(BaseModel):
+    full_name: str
+    email: EmailStr
+
+class UserMeSchema(BaseModel):
+    email: EmailStr
+    full_name: str
+    gender: Gender
+    age: int
+    created_at: datetime
+    updated_at: datetime

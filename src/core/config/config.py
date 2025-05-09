@@ -10,7 +10,19 @@ from src.core.config.base_config import BASE_DIR
 logger.debug(f"BASE_DIR: {BASE_DIR}")
 
 class DBConfig(Settings):
-    DATABASE_URL: str
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: int = 1234
+    POSTGRES_DB: str = "alphadb"
+    POSTGRES_HOST: str = "db"
+    POSTGRES_PORT: int = 5432
+
+    @property
+    def DATABASE_URL(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:"
+            f"{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:"
+            f"{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+        )
 
 class JWTConfig(Settings):
     SECRET_KEY: str = "1234567890"
@@ -33,8 +45,15 @@ class RedisConfig(Settings):
     REDIS_PASSWORD: Optional[str] = None
     REDIS_DB: int = 0
 
+class CloudinaryConfig(Settings):
+    CLOUDINARY_NAME: str = "your_cloud_name"
+    CLOUDINARY_API_KEY: int = 1234567890
+    CLOUDINARY_API_SECRET: str = "your_api_secret"
+
+
 admin_config = AdminConfig()
 db_config = DBConfig()
 jwt_config = JWTConfig()
 redis_config = RedisConfig()
+cloudinary_config = CloudinaryConfig()
 print(f"DBConfig: {db_config.DATABASE_URL}")
