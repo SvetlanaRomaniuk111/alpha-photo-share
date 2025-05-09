@@ -26,25 +26,6 @@ from src.db import events
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """
-    Lifespan function for managing the startup and shutdown lifecycle of the FastAPI application.
-
-    This function is used to initialize and clean up the Redis connection and setup
-    the FastAPILimiter during the application's lifespan. It connects to Redis
-    when the app starts and closes the connection when the app shuts down.
-
-    Args:
-        app (FastAPI): The FastAPI application instance that will use this lifespan manager.
-
-    Yields:
-        None: This is a context manager, and the yielded value is unused. It simply
-        marks the point where the application is running.
-
-    Example:
-        ```python
-        app = FastAPI(lifespan=lifespan)
-        ```
-    """
     log.info("App starting up...")
 
     await redis_manager.connect()

@@ -40,7 +40,7 @@ class Post(Base):
         "PostRating", back_populates="post"
     )
     transformed_images: Mapped[list["TransformedImage"]] = relationship(
-        "TransformedImage", back_populates="post", lazy="select"
+        "TransformedImage", back_populates="post", cascade="all, delete-orphan", lazy="select"
     )
 
 class Comment(Base):

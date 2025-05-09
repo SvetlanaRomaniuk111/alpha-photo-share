@@ -33,13 +33,6 @@ class QrCodeService:
         return img
     
     async def generateSvgAsync(self, data:str, size:int=200) -> str:
-        """
-        Asynchronously generates a QR code in SVG format based on the provided data (fixed sizes and standard attributes).
-
-        :param data: Data to encode in the QR code.
-        :param size: Size of the QR code in pixels.
-        :return: String with the SVG code of the QR code.
-        """
         qr = qrcode.QRCode(
             image_factory=SvgPathFillImage,
             error_correction=qrcode.constants.ERROR_CORRECT_H,
@@ -53,13 +46,6 @@ class QrCodeService:
         return svg_string
     
     def generateSvg(self, data:str, size:int=200) -> str:
-        """
-        Synchronously generates a QR code in SVG format based on the provided data (fixed sizes and standard attributes).
-
-        :param data: Data to encode in the QR code.
-        :param size: Size of the QR code in pixels.
-        :return: String with the SVG code of the QR code.
-        """
         qr = qrcode.QRCode(
             image_factory=SvgPathFillImage,
             error_correction=qrcode.constants.ERROR_CORRECT_H,

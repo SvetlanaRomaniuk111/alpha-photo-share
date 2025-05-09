@@ -1,9 +1,3 @@
-"""
-This module defines API routes for managing post information.
-Routes include CRUD operations on posts with rate limiting and user authentication.
-
-"""
-
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, File, Form, HTTPException, Depends, UploadFile, status, Query
@@ -17,6 +11,8 @@ from src.repository import posts as repositories_posts
 from src.schemas.post import PostResponseSchema
 from src.services.roles import RoleAccessService
 from src.services.image import cloudinary_service
+from src.services.auth import auth_service  
+
 
 router = APIRouter(prefix='/posts', tags=['posts'])
 all_roles_access = RoleAccessService([role for role in Role])
@@ -51,7 +47,10 @@ async def get_posts_by_tag(tag_name: str, db: AsyncSession = Depends(get_db)):
 @router.post('/', response_model=PostResponseSchema, status_code=status.HTTP_201_CREATED, dependencies=[Depends(RateLimiter(times=10, seconds=20))])
 async def create_post(title: str = Form(...), description: str = Form(...), image: UploadFile = File(...),tags: Optional[List[str]] = Form(default=[]), db: AsyncSession = Depends(get_db),
                          user: User = Depends(all_roles_access)):
-    tags = tags[0].split(",")
+    if tags and tags[0]:
+        tags = tags[0].split(",")
+    else:
+        tags = []
     if len(tags) > 5:
         raise HTTPException(status_code=400, detail="You can add up to 5 tags only.")
     if not image.content_type.startswith('image/'):
@@ -75,7 +74,10 @@ async def update_post(title: Optional[str], description: Optional[str], post_id:
 
     post = await repositories_posts.get_post(post_id, db)
 
-    if post.user_id != user.id or user.role != Role.admin:
+    if post is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+    if post.user_id != user.id and user.role != Role.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this post")
 
     if title is None and description is None:
@@ -88,12 +90,15 @@ async def update_post(title: Optional[str], description: Optional[str], post_id:
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(RateLimiter(times=10, seconds=20))])
-async def delete_post( post_id: UUID, user: User = Depends(all_roles_access), db: AsyncSession = Depends(get_db)):
+async def delete_post( post_id: UUID, user: User = Depends(auth_service.authenticate_user), db: AsyncSession = Depends(get_db)):
+    
     post = await repositories_posts.get_post(post_id, db)
-
-    if post.user_id != user.id or user.role != Role.admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to update this post")
-
-    post = await repositories_posts.delete_post(post_id, db)
     if post is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+    if post.user_id != user.id and user.role != Role.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not allowed to delete this post")
+
+    await repositories_posts.delete_transformed_images_by_post_id(post_id, db)
+
+    await repositories_posts.delete_post(post_id, db)

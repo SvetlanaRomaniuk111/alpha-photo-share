@@ -25,44 +25,13 @@ class Auth:
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
     def verify_password(self, plan_password, hashed_password):
-        """
-        Verifies if the provided plain password matches the hashed password.
-
-        Args:
-            plain_password (str): The plain password to verify.
-            hashed_password (str): The hashed password to compare against.
-
-        Returns:
-            bool: `True` if passwords match, otherwise `False`.
-        """
         return self.pwd_context.verify(plan_password, hashed_password)
 
     def get_password_hash(self, password):
-        """
-        Generates a hashed password from the plain password.
-
-        Args:
-            password (str): The plain password to hash.
-
-        Returns:
-            str: The hashed password.
-        """
         return self.pwd_context.hash(password)
 
     
     def _create_token(self, data: dict, expires_delta: Optional[timedelta], scope: str):
-        """
-        Internal helper to create a JWT token.
-
-        Args:
-            data (dict): Data to encode in the token.
-            expires_delta (Optional[timedelta]): Optional override for the expiry duration.
-            scope (str): The scope of the token (e.g., 'access_token' or 'refresh_token').
-            default_expiry (timedelta): The default expiry time if expires_delta is None.
-
-        Returns:
-            str: Encoded JWT token.
-        """
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + expires_delta
         to_encode.update({
@@ -73,19 +42,6 @@ class Auth:
         return jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
 
     def _decode_token(self, token: str, expected_scope: Optional[str] = None) -> dict:
-        """
-        Internal helper to decode a JWT token and optionally validate its scope.
-
-        Args:
-            token (str): The token to decode.
-            expected_scope (Optional[str]): The expected scope for the token.
-
-        Returns:
-            dict: The decoded JWT payload.
-
-        Raises:
-            HTTPException: If the token is invalid or has an unexpected scope.
-        """
         try:
             payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
             if expected_scope and payload.get("scope") != expected_scope:
@@ -133,20 +89,6 @@ class Auth:
     async def authenticate_user(
         self, token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db), redis: Redis = Depends(get_redis)
     ) -> Coroutine[Any, Any, User]:
-        """
-        Authenticates the user based on the provided access token.
-
-        Args:
-            token (str): The access token to authenticate the user.
-            db (AsyncSession): The database session dependency.
-            redis (Redis): The Redis dependency.
-
-        Returns:
-            User: The authenticated user object.
-
-        Raises:
-            HTTPException: If the token is invalid or expired.
-        """
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",

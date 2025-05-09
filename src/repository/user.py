@@ -15,18 +15,6 @@ from src.services.auth import auth_service
 
 
 async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
-    """
-    Retrieve a user by their email address.
-
-    This function queries the database to find a user by their email address.
-
-    Args:
-        email (str): The email address of the user.
-        db (AsyncSession, optional): The database session. Defaults to Depends(get_db).
-
-    Returns:
-        User | None: The user object if found, or None if the user does not exist.
-    """
     stmt = select(User).filter(User.email == email)
     user = await db.execute(stmt)
     user = user.unique().scalar_one_or_none()
@@ -34,19 +22,6 @@ async def get_user_by_email(email: str, db: AsyncSession = Depends(get_db)):
 
 
 async def create_user(body: UserCreationSchema, db: AsyncSession = Depends(get_db)):
-    """
-    Create a new user in the database.
-
-    This function creates a new user by extracting the data from the provided
-    UserCreationSchema and saving it to the database.
-
-    Args:
-        body (UserCreationSchema): The user creation data, including email and password.
-        db (AsyncSession, optional): The database session. Defaults to Depends(get_db).
-
-    Returns:
-        User: The newly created user object.
-    """
     user = User(**body.model_dump())
     db.add(user)
     await db.commit()
@@ -55,16 +30,6 @@ async def create_user(body: UserCreationSchema, db: AsyncSession = Depends(get_d
 
 
 async def update_token(user: User, token: str | None, db: AsyncSession):
-    """
-    Update the user's refresh token in the database.
-
-    This function updates the user's refresh token with the new value provided.
-
-    Args:
-        user (User): The user object whose token is being updated.
-        token (str | None): The new refresh token value. If None, the token will be cleared.
-        db (AsyncSession): The database session to commit changes.
-    """
     user.refresh_token = token
     await db.commit()
 
