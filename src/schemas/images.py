@@ -15,12 +15,5 @@ class TransformResponseImageSchema(BaseModel):
 
 
 class ImageRequestSchema(BaseModel):
-    """
-    Schema for requesting image transformation.
-
-    Attributes:
-        image_url (HttpUrl): URL of the image to be transformed.
-        transformation (dict[str, Any]): Dictionary containing transformation parameters.
-    """
     image_url: HttpUrl
     transformation: dict[str, Any]  # Allows for mixed value types (str, int, float)

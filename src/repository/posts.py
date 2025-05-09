@@ -1,14 +1,13 @@
 from typing import List, Optional
-from sqlalchemy import UUID, func, select
+from sqlalchemy import UUID, func, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
-from src.models import Post, User
+from src.models import Post, User, TransformedImage
 from src.models.posts import PostTag, Tag
 from src.repository.tags import add_tag
 
 
-# get all posts with pagination
 async def get_posts(limit: int, offset: int, db: AsyncSession):
     result = await db.execute(
         select(Post)
@@ -20,7 +19,6 @@ async def get_posts(limit: int, offset: int, db: AsyncSession):
     return result.scalars().unique().all()
 
 
-# get one post by id
 async def get_post(post_id: UUID, db: AsyncSession):
     result = await db.execute(
         select(Post)
@@ -47,7 +45,6 @@ async def get_posts_by_tag(tag_name: str, db: AsyncSession):
     return result.unique().scalars().all()
 
 
-
 async def add_tag_for_post(post_id: UUID, name: str, db: AsyncSession):
 
     tag_id = await add_tag(name, db) 
@@ -55,6 +52,12 @@ async def add_tag_for_post(post_id: UUID, name: str, db: AsyncSession):
     db.add(post_tag)
     await db.commit()
     await db.refresh(post_tag)
+
+
+async def delete_transformed_images_by_post_id(post_id: UUID, db: AsyncSession):
+    stmt = delete(TransformedImage).where(TransformedImage.post_id == post_id)
+    await db.execute(stmt)
+    await db.commit()
 
     
 
