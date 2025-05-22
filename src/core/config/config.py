@@ -16,7 +16,7 @@ print(f"Определена среда: {'Docker' if is_docker else 'Локал
 
 class DBConfig(Settings):
     POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: int = 567234
+    POSTGRES_PASSWORD: int = 1234
     POSTGRES_DB: str = "alphadb"
     POSTGRES_HOST: str = "db"  # Будет переопределено позже
     POSTGRES_PORT: int = 5432
